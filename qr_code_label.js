@@ -21,7 +21,72 @@ qr_label_printer_script =
     this.qr_code();
   },
   printBtn:function() {
-    console.log(qr_label_printer_script.to_json());
+    var label_window = window.open("","qr_code_window","width=300,height=500,scrollbars=1,resizable=1,top=100,left=400")
+    var html = "<html><head>"+
+        '<style type="text/css">' +
+        '@media print { '+
+        '  #print-button {	display: none; }'+
+        '}'+
+        '</style>'+
+        "</head><body><div id='qrcode'></div><div id='label_text'></div>" +
+        '<a href="javascript:window.print()">'+
+        '<br/><img id="print-button" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAP+AAAD/gBMtXRsQAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAHGSURBVEiJ7de/axRBFAfwT5JLLGIQxSKNRLHQRoKVhYWlWJjGzk4I2IpgGdBGFBT/CEGwFUGwsTlsLDSoBBQUxRhBEKKJStRosbO6nDO7t7d3Z+MXHjszb/b7nbezb34QxySu4Dk28bOm/cASLmAiofEXRnC3B7GU3UiJdOIw2qF8HvcDQR2M4ijOhvo+PKt66XQQWqkpFhP/GrhOxJydGA/Pbw2FN2VzTWSeY8JDwX/hoSFPp704g1nsxi5s4HFD/oOy4F7iDR7hWqibxZr+LRhV9gkHxnAd+xtGlsJn3MQqZkLbBPYIIxhUdMcLg7hVaP84iq0DiDTH00K5+L9MKRltvzaIHTiE5aJvRP0NoC/4Z3ncKvG9x8mG/LexJeVMzc/rhqKwnuJvybausQqCOUx3KfZOljpl+E72m1dF3E6NPGLtwnupiBdbuCxbvcrwFi8q+hT7VuFSXpiXfaJBz/EKTsU6bsO5iPAdfCixYxXC84H7NzrTaRVfIgRT2J4gp/rsvB64k8IpLGBnif9BlzylwvnpcrzQdq8usWxVzNN0oxvhJ+E5jYt42IMoHPFn1erqJDOUK0wKk7gqy8leBV8pubT9ApC3CEw9gdcmAAAAAElFTkSuQmCC" alt="print this page" id="print-button" /></a>' +
+        "</body></html>"
+    label_window.document.open()
+    label_window.document.write(html)
+    //console.log(qr_label_printer_script.to_json());
+    //[{"name":"ck01","value":"on"},{"name":"t01","value":"Frogs"},{"name":"ck02","value":"on"},{"name":"t02","value":"Blah"},{"name":"t03","value":"Blah"},{"name":"ck04","value":"on"},{"name":"f01","value":"somethingfadfafdaafdafdafd"}]
+    //[{"name":"ck01","value":"on"},{"name":"t01","value":"Frogs"},{"name":"ck02","value":"on"},{"name":"t02","value":"Blah"},{"name":"ck03","value":"on"},{"name":"t03","value":"Blah"},{"name":"ck04","value":"on"},{"name":"f01","value":"somethingfadfafdaafdafdafd"}]
+    var label = "";
+    var label_text_sanitized = "";
+    var qr_label = JSON.parse(qr_label_printer_script.to_json());
+    var values_hash = {};
+
+    qr_label.forEach(function(element) {
+      values_hash[element.name] = element.value
+    });
+
+    qr_label.forEach(function(element) {
+      if (element.name === 'ck01') {
+        if (element.value === 'on') {
+          label = label + "<p>ID : "+ values_hash['t01'] +"</p>"
+            label_text_sanitized = label_text_sanitized + "ID: " + values_hash['t01']
+        }
+      }
+      if (element.name === 'ck02') {
+        if (element.value === 'on') {
+          label = label + "<p>Gene : "+ values_hash['t02'] +"</p>"
+            if (label_text_sanitized.length > 0) {
+              label_text_sanitized = label_text_sanitized + ". "
+            }
+            label_text_sanitized = label_text_sanitized + "Gene: " + values_hash['t02']
+        }
+       }
+      if (element.name === 'ck03') {
+        if (element.value === 'on') {
+          label = label + "<p>Location : "+ values_hash['t03'] +"</p>"
+        }
+       }
+        if (element.name === 'ck04') {
+        if (element.value === 'on') {
+          label = label + "<p>Name : "+ values_hash['f01'] +"</p>"
+        }
+       }
+
+    });
+    var label_text_div = label_window.document.getElementById("label_text");
+    label_text_div.insertAdjacentHTML('afterend', label);
+
+
+    qrcode = new QRCode(label_window.document.getElementById("qrcode"), {
+      text: label_text_sanitized,
+      width: 128,
+      height: 128,
+      colorDark : "#000000",
+      colorLight : "#ffffff",
+      correctLevel : QRCode.CorrectLevel.H
+    });
+    label_window.document.close()
   },
   qr_code:function() {
     //---------------------------------------------------------------------
